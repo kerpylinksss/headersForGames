@@ -4,6 +4,7 @@
 #include <vector>
 #include <map>
 #include <string>
+#include "./levels/level.h"
 
 using namespace std;
 using namespace sf;
@@ -16,7 +17,7 @@ class Entity
 private:
 	float x, y;
 	float dx, dy;
-	float health, speed, stamine;
+	float health, speed;
 	const float gravity = 0.0098f;
 	string File;
 	string FileRev; // for reversed animation
@@ -27,10 +28,11 @@ private:
 	//iter->first - usual frames, iter->second - reversed frames
 	Texture textureRev;
 	Sprite spriteEntity;
-	virtual void move() = 0;
+	void checkIfAlive();
 	bool alive, isMove, onGround;
 	Clock clAnim;
-	
+	void Jump(const float* const time);
+	void interactionWithLevel(const Level* lev);
 protected:
 	Entity(float h, float sp, float st, string f, string fr){};
 	enum statesOfPers = {stay, go, jump};
@@ -44,6 +46,11 @@ protected:
 	
 	enum lastStateMove = {lright, lleft};
 	lastStateMove lst;
+	
+	virtual void move() = 0;
+	virtual void checkForDamage(const Entity* const en);
+	
+	
 public:
 	void Spawn(float x, float y, IntRect &startFrame);
 	void Update(const float &time);
@@ -81,3 +88,16 @@ class Friend : public Bot
 private:
 public:
 };
+
+
+
+
+
+
+
+
+
+
+
+
+

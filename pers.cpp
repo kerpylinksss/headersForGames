@@ -2,13 +2,12 @@
 
 
 //entities:
-Entity::Entity(float h, float sp, float st, string f, string fr)
+Entity::Entity(float h, float sp, string f, string fr)
 {
 	health = h;
 	speed = sp;
-	stamine = st;
-	texture.loadFromFile(f);
-	textureRev.loadFromFile(fr);
+	texture.loadFromFile("../images/enities/" + f);
+	textureRev.loadFromFile("../images/entitiesRev/" + fr);
 	alive = true;
 	onGround = true;
 	isMove = false;
@@ -43,9 +42,40 @@ void Entity::Spawn(float x, float y, IntRect &startFrame, bool rev = false)
 	this->spriteEntity.setPosition(Vector2f(x, y));
 };
 
-void Entity::Update(const float &time)
+void Entity::checkIfAlive()
 {
+	if(this->health <= 0)
+	{
+		this->health = 0;
+		alive = false;
+	}
+}
+
+
+void Entity::Jump(const float* const time)
+{
+	dy += gravity * time;
+	
+};
+
+
+
+
+void Entity::interactionWithLevel(const Level* lev)
+{
+	// code for interaction with level
+};
+
+
+
+
+void Entity::Update(const float &time, const Level& lev)
+{	
+
+	checkForDamage();
+	checkIfAlive();
 	move();
+	
 	if(isMove)
 	{
 		switch(state)
@@ -85,13 +115,14 @@ void Entity::Update(const float &time)
 			}
 			break;
 		case jump:
+			Jump(&time);
 			switch(lst)
 			{
 			case lright:
 				this->spriteEntity.setTexture(texture);
 				
 				if(stateJump == up)
-				{	if(clAnim.getElapsedTime() > milliseconds(70))
+				{	if(clAnim.getElapsedTime() >= milliseconds(70))
 					{
 						clAnim.restart();
 						currentJumpFrame++;
@@ -101,7 +132,7 @@ void Entity::Update(const float &time)
 				}
 				else if(stateJump == down)
 				{
-					if(clAnim.getElapsedTime() > milliseconds(70))
+					if(clAnim.getElapsedTime() >= milliseconds(70))
 					{
 						clAnim.restart();
 						currentJumpFrame--;
@@ -109,8 +140,28 @@ void Entity::Update(const float &time)
 						this->spriteEntity.setTextureRect((mpIterAnim + jump)->first[currentJumpFrame]);
 					}
 				}
+				break;
 			case lleft:
 				this->spriteEntity.setTexture(textureRev);
+				if(stateJump == up)
+				{	if(clAnim.getElapsedTime() >= milliseconds(70))
+					{
+						clAnim.restart();
+						currentJumpFrame++;
+						if(currentJumpFrame >= ((mpIterAnim + jump)->second).size()) currentJumpFrame = 0;
+						this->spriteEntity.setTextureRect((mpIterAnim + jump)->second[currentJumpFrame]);
+					}
+				}
+				else if(stateJump == down)
+				{
+					if(clAnim.getElapsedTime() >= milliseconds(70))
+					{
+						clAnim.restart();
+						currentJumpFrame--;
+						if(currentJumpFrame < 0) currentJumpFrame = ((mpIterAnim + jump)->second.size() - 1;
+						this->spriteEntity.setTextureRect((mpIterAnim + jump)->second[currentJumpFrame]);
+					}
+				}
 				break;
 			}
 			break;
@@ -123,16 +174,35 @@ void Entity::Update(const float &time)
 		switch(lst)
 		{
 			case lright:
+				if(clAnim.getElapsedTime() >= milliseconds(80))
+				{
+					clAnim.restart();
+					currentStayFrame++;
+					if(currentStayFrame >= ((mpIterAnim + stay)->first).size()) currentStayFrame = 0;
+					this->spriteEntity.setTextureRect((mpIterAnim + stay)->first[currentStayFrame]);
+				}
 				break;
 			case lleft:
+				if(clAnim.getElapsedTime() >= milliseconds(80))
+				{
+					clAnim.restart();
+					currentStayFrame++;
+					if(currentStayFrame >= ((mpIterAnim + stay)->second.size()) currentStayFrame = 0;
+					this->spriteEntity.setTextureRect((mpIterAnim + stay)->first[currentStayFrame]);
+				}
 				break;
 			default:
 				break;
 		}
 	}
 	
+	
+	
 	x += dx * time;
 	y += dy * time;
+	
+	interactionWithLevel(&lev);
+	
 	spriteEntity.setPosition(Vector2f(x, y));
 };
 
